@@ -1,0 +1,63 @@
+﻿<table class="table table-sm">
+    <thead>
+        <th @onclick="@(e => Sort("Number"))">Number</th>
+    </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>@item.Number</tr>
+            }
+        </tbody>
+</table>
+
+@code {
+
+    private List<Item> items = new List<Item>();
+
+    private string sortColumn;
+    private string sortOrder;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            var n = new Item { Number = i };
+            items.Add(n);
+        }
+    }
+
+    private void Sort(string column)
+    {
+        if (sortColumn == column)
+        {
+            if (sortOrder == "Asc")
+            {
+                items = items.OrderByDescending(x => x.GetType().GetProperty(column).GetValue(x, null)).ToList();
+                sortOrder = "Desc";
+            }
+            else
+            {
+                items = items.OrderBy(x => x.GetType().GetProperty(column).GetValue(x, null)).ToList();
+                sortOrder = "Asc";
+            }
+
+        }
+        else
+        {
+            items = items.OrderBy(x => x.GetType().GetProperty(column).GetValue(x, null)).ToList();
+            sortOrder = "Asc";
+            sortColumn = column;
+        }
+    }
+
+    private string message = "";
+
+
+    private class Item
+    {
+        public int Number { get; set; }
+    }
+
+
+}
+

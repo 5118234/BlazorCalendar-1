@@ -1,0 +1,51 @@
+﻿@page "/"
+
+@{
+
+<SimpleCalendar></SimpleCalendar>
+
+}
+
+
+@code{
+    public string modalStatus { get; set; }
+    public string status { get; set; } = "hide";
+    public string fade { get; set; } = "animate__fadeInRight";
+
+    protected override async Task OnParametersSetAsync()
+    {
+
+        modalStatus = "1";
+
+    }
+
+    private void Toggle()
+    {
+        if (status == "hide")
+        {
+            status = "show";
+            fade = "animate__fadeOutLeft";
+        }
+        else
+        {
+            fade = "animate__fadeInRight";
+            //status = "hide";
+        }
+
+    }
+
+    private void ModalShow()
+    {
+
+        if (modalStatus == "1")
+        {
+            modalStatus = "0";
+        }
+        else
+        {
+            modalStatus = "1";
+        }
+
+    }
+
+}

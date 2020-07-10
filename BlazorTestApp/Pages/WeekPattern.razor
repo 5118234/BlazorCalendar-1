@@ -1,0 +1,63 @@
+﻿<h4>Week Pattern</h4>
+@foreach(var week in weeks)
+{
+    <div class="btn btn-sm @(week.Status == true ? "btn-success" : "btn-secondary")"
+         @onclick="@(e => UpdateHeading(e, week))">
+        <div>
+            @week.Date.ToString("dd")
+        </div>
+        <div>
+            @week.Date.ToString("MMM")
+        </div>
+    </div>
+}
+
+
+<h4>@message</h4>
+
+@code {
+
+    [Parameter]
+    public string pattern { get; set; }
+
+    [Parameter]
+    public DateTime start { get; set; }
+
+    private List<Week> weeks = new List<Week>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        for (int i = 0; i < pattern.Length; i++)
+        {
+
+            var d = start.AddDays(i * 7);
+            var w = pattern.Substring(i, 1);
+
+            var s = (w == "1") ? true : false;
+
+
+            var n = new Week { Date = d, Status = s };
+            weeks.Add(n);
+        }
+    }
+
+
+    private string message = "";
+
+    private void UpdateHeading(MouseEventArgs e, Week w)
+    {
+        message = $"You selected week #{w.Date.ToString("dd/MMM")} at " +
+            $"mouse position: {e.ClientX} X {e.ClientY}.";
+
+        w.Status = (w.Status == true ? false : true);
+
+    }
+
+    private class Week
+    {
+        public DateTime Date { get; set; }
+        public bool Status { get; set; }
+    }
+
+
+}

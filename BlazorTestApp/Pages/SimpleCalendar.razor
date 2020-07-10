@@ -1,0 +1,176 @@
+﻿<table class="sc-table">
+    <thead>
+        <tr>
+            <th></th>
+            @for (int i = 0; i < days; i++)
+            {
+                <th colspan="1">
+                    @start.AddDays(i).ToString("dddd")
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < rows; i++)
+        {
+            bool shifted = true;
+            DateTime nextEnd = start;
+            var rowTime = start.AddMinutes(i * interval);
+            <tr class="sc-row">
+                <td class="sc-time">@rowTime.ToString("HH:mm")</td>
+                @for (int d = 0; d < days; d++)
+                {
+                    var cellTime = rowTime.AddDays(d);
+                    @if (events.Any(e => e.eventStartRounded == cellTime))
+                    {
+                        var shift = false;
+
+                        <td class="sc-cell sc-event-cell" style="position:relative">
+
+                            @foreach (var ce in events.Where(a => a.eventStartRounded == cellTime))
+                            {
+                                if (shift == false && ce.eventOverlaps == true)
+                                {
+                                    <div class="sc-event-box" style=" height: @ce.eventHeight ; top: @ce.topShift ; left:0px)">@ce.eventTitle @ce.topShift @ce.eventWidth</div>
+                                }
+                                else
+                                {
+                                    <div class="sc-event-box" style=" height: @ce.eventHeight ; top: @ce.topShift ; left:50px)">@ce.eventTitle @ce.topShift @ce.eventWidth</div>
+                                }
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="sc-cell sc-empty-cell"></td>
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button @onclick="@(e => AddTime(-60))">Minus 15 Minutes</button>
+<button @onclick="@(e => AddTime(-15))">Minus 60 Minutes</button>
+<button @onclick="@(e => AddTime(15))">Add 15 Minutes</button>
+<button @onclick="@(e => AddTime(60))">Add 60 Minutes</button>
+
+@foreach (var ce in events)
+{
+    @ce.eventStart.ToString("hh:mm") @ce.eventEnd.ToString("hh:mm")
+}
+
+
+@code {
+
+    private DateTime start { get; set; } = new DateTime(2020, 07, 09, 09, 00, 0);
+    private DateTime end { get; set; } = new DateTime(2020, 07, 09, 17, 0, 0);
+    public int interval { get; set; } = 15;
+    private double rows { get; set; } = 0;
+
+    public int ew { get; set; } = 100;
+    public int days { get; set; } = 5;
+
+    public CalendarEvent chosen { get; set; } = new CalendarEvent(15);
+
+    public List<CalendarEvent> events { get; set; } = new List<CalendarEvent>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        rows = end.Subtract(start).TotalMinutes / interval;
+
+        var ce = new CalendarEvent(interval) { eventStart = new DateTime(2020, 07, 09, 10, 04, 00), eventEnd = new DateTime(2020, 07, 09, 13, 05, 00), eventTitle = "Appointment", eventWidth = ew };
+        chosen = ce;
+        events.Add(ce);
+
+        var ce2 = new CalendarEvent(interval) { eventStart = new DateTime(2020, 07, 11, 12, 30, 00), eventEnd = new DateTime(2020, 07, 11, 16, 15, 00), eventTitle = "Blazor Training", eventWidth = ew };
+        events.Add(ce2);
+
+        var ce3 = new CalendarEvent(interval) { eventStart = new DateTime(2020, 07, 11, 13, 30, 00), eventEnd = new DateTime(2020, 07, 11, 14, 15, 00), eventTitle = "Blazor Training", eventWidth = ew };
+        events.Add(ce3);
+
+        foreach (var e in events
+    .Where(e1 =>
+    events
+        .Where(e2 => e1 != e2)
+        .Where(e2 => e1.eventStart <= e2.eventEnd)
+        .Where(e2 => e1.eventEnd >= e2.eventStart)
+        .Any())
+        .ToList())
+        {
+            e.eventWidth = e.eventWidth / 2;
+            e.eventOverlaps = true;
+        }
+
+    }
+
+}
+
+@functions{
+
+    public class CalendarEvent
+    {
+        private int interval { get; set; } = 15;
+        public CalendarEvent(int i)
+        {
+            interval = i;
+        }
+
+        public string eventTitle { get; set; }
+
+        private DateTime _eventStart;
+        public DateTime eventStartRounded;
+        public DateTime eventStart
+        {
+            get { return _eventStart; }
+            set
+            {
+                _eventStart = value;
+
+                eventStartRounded = value.Date + RoundToNearestMinutes(eventStart.TimeOfDay, interval);
+
+            }
+        }
+
+        private DateTime _eventEnd;
+        public DateTime eventEndRounded;
+        public DateTime eventEnd
+        {
+            get { return _eventEnd; }
+            set
+            {
+                _eventEnd = value;
+
+                eventEndRounded = value.Date + RoundToNearestMinutes(eventEnd.TimeOfDay, interval);
+
+
+
+                var eh = (1.54 * 12) * (eventEnd.Subtract(eventStart).TotalMinutes / interval);
+                var ts = (1.54 * 12) * (eventStart.Subtract(eventStartRounded).TotalMinutes / interval);
+
+                topShift = Math.Round(ts).ToString() + "px";
+                eventHeight = Math.Round(eh).ToString() + "px";
+            }
+        }
+
+        public string eventHeight;
+        public int eventWidth;
+        public string topShift;
+        public bool eventOverlaps;
+
+    }
+
+    public static TimeSpan RoundToNearestMinutes(TimeSpan input, int minutes)
+    {
+        var totalMinutes = (int)(input + new TimeSpan(0, minutes / 2, 0)).TotalMinutes;
+
+        return new TimeSpan(0, totalMinutes - totalMinutes % minutes, 0);
+    }
+
+    public void AddTime(int i)
+    {
+        chosen.eventStart = chosen.eventStart.AddMinutes(i);
+        chosen.eventEnd = chosen.eventEnd.AddMinutes(i);
+    }
+
+}

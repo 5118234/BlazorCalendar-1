@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+@if (status == "1")
+{
+    <div id="open-modal" class="modal-window modal-window-show">
+        <div>
+            <a href="#" title="Close" class="modal-close">Close</a>
+            <h1>Voilà!</h1>
+            <div>A CSS-only modal based on the :target pseudo-class. Hope you find it helpful.</div>
+            <div><small>Check out</small></div>
+        </div>
+    </div>
+
+}
+else
+{
+    <div id="open-modal" class="modal-window modal-window-hide">
+        <div>
+            <a href="#" title="Close" class="modal-close">Close</a>
+            <h1>Voilà!</h1>
+            <div>A CSS-only modal based on the :target pseudo-class. Hope you find it helpful.</div>
+            <div><small>Check out</small></div>
+        </div>
+    </div>
+
+}
+
+@code {
+    [Parameter]
+    public string status { get; set; }
+}
